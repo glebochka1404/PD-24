@@ -1,3 +1,4 @@
-config.*
+src/config.json
+src/russiantrustedca.pem
 __pycache__
 venv

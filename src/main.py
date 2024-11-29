@@ -13,24 +13,23 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-import asyncio
 import requests
 
 # Configure logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
 # Load configuration
-with open('config.json', 'r', encoding='utf-8') as f:
+with open("config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
 TELEGRAM_BOT_TOKEN = config.get("telegram_bot_token")
 OAUTH_CONFIG = config.get("oauth", {})
 AI_API_CONFIG = config.get("ai_api", {})
 SYSTEM_PROMPT = config.get("system_prompt", "You are a helpful assistant.")
+
 
 class TokenManager:
     def __init__(self, oauth_config):
@@ -44,21 +43,21 @@ class TokenManager:
 
     async def fetch_token(self):
         """Fetch a new access token from the OAuth endpoint."""
-        payload = {
-            'scope': self.scope
-        }
+        payload = {"scope": self.scope}
         headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json',
-            'RqUID': str(uuid.uuid4()),
-            'Authorization': self.authorization
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "RqUID": str(uuid.uuid4()),
+            "Authorization": self.authorization,
         }
 
         ssl_verify = self.verify_path()
 
         async with aiohttp.ClientSession() as session:
             try:
-                resp = requests.post(self.oauth_url, headers=headers, data=payload, verify=ssl_verify)
+                resp = requests.post(
+                    self.oauth_url, headers=headers, data=payload, verify=ssl_verify
+                )
 
                 if resp.status_code != 200:
                     text = resp.text
@@ -81,13 +80,17 @@ class TokenManager:
 
     def is_token_valid(self):
         """Check if the current token is still valid."""
-        return self.access_token and time.time() < self.expires_at - 60  # Refresh 60 seconds before expiry
+        return (
+            self.access_token and time.time() < self.expires_at - 60
+        )  # Refresh 60 seconds before expiry
 
     async def get_token(self):
         """Get a valid access token, refreshing it if necessary."""
         async with self.lock:
             if not self.is_token_valid():
-                logger.info("Access token expired or not present. Fetching a new token.")
+                logger.info(
+                    "Access token expired or not present. Fetching a new token."
+                )
                 await self.fetch_token()
             return self.access_token
 
@@ -99,26 +102,33 @@ class TokenManager:
             if path.exists():
                 return verify
             else:
-                logger.warning(f"SSL certificate not found at {verify}. Using default SSL verification.")
+                logger.warning(
+                    f"SSL certificate not found at {verify}. Using default SSL verification."
+                )
         return True
+
 
 # Initialize TokenManager
 token_manager = TokenManager(OAUTH_CONFIG)
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle the /start command."""
-    await update.message.reply_text('Привет! Отправь мне текст и я переведу его на Ясный язык.')
+    await update.message.reply_text(
+        "Привет! Отправь мне текст и я переведу его на Ясный язык."
+    )
+
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle the /help command."""
-    help_text = (
-        "Отправь мне текст и я переведу его на Ясный язык"
-    )
+    help_text = "Отправь мне текст и я переведу его на Ясный язык"
     await update.message.reply_text(help_text)
 
     #     access_token = await token_manager.get_token()
     # AI_API_CONFIG.get("url")
     # verify=token_manager.verify_path()
+
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle incoming messages."""
     user_message = update.message.text
@@ -129,32 +139,35 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     payload = {
         "model": "GigaChat",
         "messages": [
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            },
-            {
-                "role": "user",
-                "content": user_message
-            }
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_message},
         ],
         "stream": False,
-        "repetition_penalty": 1
+        "repetition_penalty": 1,
     }
 
     headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': f'Bearer {access_token}'
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {access_token}",
     }
 
     try:
-        response = requests.post(AI_API_CONFIG.get("url"), headers=headers, json=payload, verify=token_manager.verify_path())
+        response = requests.post(
+            AI_API_CONFIG.get("url"),
+            headers=headers,
+            json=payload,
+            verify=token_manager.verify_path(),
+        )
         response.raise_for_status()  # Raise an error for bad status codes
         response_data = response.json()
 
         # Extract the AI's reply
-        ai_reply = response_data.get('choices', [{}])[0].get('message', {}).get('content', 'Извините, я не смог ответить на это.')
+        ai_reply = (
+            response_data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "Извините, я не смог ответить на это.")
+        )
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Error communicating with AI API: {e}")
@@ -162,6 +175,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Send the AI's reply back to the user
     await update.message.reply_text(ai_reply)
+
 
 async def on_startup(application):
     """Fetch the initial access token when the bot starts."""
@@ -174,18 +188,24 @@ async def on_startup(application):
         # For now, we'll let the bot continue running
         pass
 
+
 def main():
     """Start the Telegram bot."""
-    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).post_init(on_startup).build()
+    application = (
+        ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).post_init(on_startup).build()
+    )
 
     # Register handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+    )
 
     # Start the bot and run the startup coroutine
     logger.info("Bot is starting...")
     application.run_polling()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
