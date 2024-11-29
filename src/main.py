@@ -1,10 +1,12 @@
+import asyncio
 import json
 import logging
-import asyncio
-import aiohttp
 import time
 import uuid
 from pathlib import Path
+
+import aiohttp
+import requests
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -13,7 +15,6 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-import requests
 
 # Configure logging
 logging.basicConfig(
@@ -121,7 +122,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle the /help command."""
-    help_text = "Отправь мне текст и я переведу его на Ясный язык"
+    help_text = """Привет! 👋 
+ 
+Я — твой помощник по переводу сложных текстов на ясный и понятный язык. Моя задача — сделать информацию доступной и легкой для восприятия.  
+ 
+Если у тебя есть текст, который ты хочешь упростить, просто отправь его мне, и я помогу сделать его более понятным😊 
+ 
+Давай сделаем общение проще вместе!"""
     await update.message.reply_text(help_text)
 
     #     access_token = await token_manager.get_token()
