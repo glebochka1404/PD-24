@@ -107,12 +107,12 @@ token_manager = TokenManager(OAUTH_CONFIG)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle the /start command."""
-    await update.message.reply_text('Hello! I am your AI chatbot. How can I assist you today?')
+    await update.message.reply_text('Привет! Отправь мне текст и я переведу его на Ясный язык.')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle the /help command."""
     help_text = (
-        "I am an AI chatbot powered by GigaChat. Send me a message, and I'll respond to you."
+        "Отправь мне текст и я переведу его на Ясный язык"
     )
     await update.message.reply_text(help_text)
 
