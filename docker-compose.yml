@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: clear-bot
+    volumes:
+      - .:/app
+    working_dir: /app/src
+    command: python main.py
+    restart: always
