@@ -3,3 +3,4 @@ src/russiantrustedca.pem
 __pycache__
 venv
 src/app.log
+.DS_Store
