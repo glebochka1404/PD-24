@@ -1,6 +1,8 @@
-src/config.json
+config.json
 src/russiantrustedca.pem
 __pycache__
 venv
 src/app.log
 .DS_Store
+.idea
+*.log
