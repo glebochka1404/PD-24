@@ -34,7 +34,10 @@ API_KEY = config.get("api_key")
 SYSTEM_PROMPT = config.get("system_prompt")
 
 os.environ["HTTP_PROXY"] = config.get("http_proxy")
+os.environ["http_proxy"] = config.get("http_proxy")
+
 os.environ["HTTPS_PROXY"] = config.get("https_proxy")
+os.environ["https_proxy"] = config.get("https_proxy")
 
 client = genai.Client(api_key=API_KEY)
 
