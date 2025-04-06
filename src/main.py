@@ -75,8 +75,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         response_data = response.text
-        print(response_data)
-        ai_reply = response_data
+        ai_reply = response_data.replace(". ", ". \n")
 
 
     except requests.exceptions.RequestException as e:
