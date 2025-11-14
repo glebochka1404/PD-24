@@ -1,7 +1,5 @@
-from google import genai
 import json
 import logging
-from google.genai import types
 import os
 
 import requests
@@ -32,14 +30,13 @@ with open(os.path.join(os.getcwd(), "config.json"), "r", encoding="utf-8") as f:
 TELEGRAM_BOT_TOKEN = config.get("telegram_bot_token")
 API_KEY = config.get("api_key")
 SYSTEM_PROMPT = config.get("system_prompt")
+TRANSLATOR_API_LANGUAGE = config.get("api_url")
 
 os.environ["HTTP_PROXY"] = config.get("http_proxy")
 os.environ["http_proxy"] = config.get("http_proxy")
 
 os.environ["HTTPS_PROXY"] = config.get("https_proxy")
 os.environ["https_proxy"] = config.get("https_proxy")
-
-client = genai.Client(api_key=API_KEY)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -67,22 +64,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Received message from {update.effective_user.id}: {user_message}")
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT),
-            contents=user_message
+        response = requests.post(
+            TRANSLATOR_API_LANGUAGE,
+            json={"text": user_message},
+            timeout=20
         )
+        response.raise_for_status()
 
-        response_data = response.text
-        ai_reply = response_data.replace(". ", ". \n")
+        data = response.json()
+        ai_reply = data.get("translated_text", "Ошибка: ответ пуст")
 
+        ai_reply = ai_reply.replace(". ", ".\n")
 
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error communicating with AI API: {e}")
+    except Exception as e:
+        logger.error(f"Error communicating with API: {e}")
         ai_reply = "Извините, произошла ошибка при обработке вашего запроса."
 
-    # Send the AI's reply back to the user
     await update.message.reply_text(ai_reply)
 
 
